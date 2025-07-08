@@ -3,9 +3,10 @@ package com.AA.deepseek.controllers;
 import com.AA.deepseek.services.DeepSeekService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+@Controller
 @RequestMapping("/api/deepseek")
 public class DeepSeekController {
     private final DeepSeekService deepSeekService;
@@ -15,13 +16,13 @@ public class DeepSeekController {
         this.deepSeekService = deepSeekService;
     }
 
-    @GetMapping("/test")
-    public String test () {
-        return "test";
+    @GetMapping("/")
+    public String index() {
+        return "index";
     }
 
     @PostMapping("/ask")
     public String askQuestion(@RequestBody String question) {
-        return ResponseEntity.ok(deepSeekService.getAnswer(question)).toString();
+        return deepSeekService.getAnswer(question).getChoices();
     }
 }

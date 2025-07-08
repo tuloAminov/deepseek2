@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+
+<!-- Кнопка открытия боковой панели для мобильных устройств -->
+<div class="md:hidden fixed top-4 left-4 z-30">
+    <button id="sidebarToggle" class="p-2 rounded-md bg-gray-200 dark:bg-gray-700">
+        <i class="fas fa-bars"></i>
+    </button>
+</div>
+
+<!-- Затемнение фона для мобильной боковой панели -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<!-- Боковая панель -->
+<div id="sidebar"
+     class="sidebar bg-white dark:bg-gray-800 w-64 border-r border-gray-200 dark:border-gray-700 flex flex-col fixed h-full">
+    <!-- Заголовок боковой панели -->
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-between">
+            <h1 class="text-xl font-bold">DeepSeek Chat</h1>
+            <button id="newChatBtn" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" title="Новый чат">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- История чатов -->
+    <div class="flex-1 overflow-y-auto">
+        <div id="chatHistory" class="p-2 space-y-1">
+            <!-- Элементы истории чатов будут добавлены с помощью JavaScript -->
+        </div>
+    </div>
+
+    <!-- Нижний колонтитул боковой панели -->
+    <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                <i class="fas fa-user"></i>
+            </div>
+            <span class="font-medium">Пользователь</span>
+        </div>
+    </div>
+</div>
+
+<!-- Основной контент -->
+<div class="ml-0 md:ml-64 transition-all duration-300">
+    <!-- Заголовок чата -->
+    <header class="chat__header dark:chat__header--dark border-b border-gray-200 dark:border-gray-700 p-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <h2 id="currentChatTitle" class="chat__title">Новый чат</h2>
+            </div>
+            <div class="flex space-x-2">
+                <button id="downloadChatBtn" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                        title="Скачать чат как TXT">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" title="Поделиться">
+                    <i class="fas fa-share"></i>
+                </button>
+                <button class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" title="Дополнительно">
+                    <i class="fas fa-ellipsis-vertical"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Контейнер чата -->
+    <div class="chat-container overflow-y-auto bg-gray-50 dark:bg-gray-900">
+        <div id="chatMessages" class="max-w-3xl mx-auto p-4 space-y-6">
+            <!-- Приветственное сообщение -->
+            <div class="flex justify-center">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm max-w-2xl w-full text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                        <i class="fas fa-robot text-blue-500 dark:text-blue-300 text-2xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold mb-2">Добро пожаловать в DeepSeek Chat</h2>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">Задайте мне любой вопрос: от творческих идей до
+                        технических объяснений.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                            <p class="font-medium">Объясните квантовые вычисления</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Простым языком</p>
+                        </button>
+                        <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                            <p class="font-medium">Напишите стихотворение об ИИ</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">В стиле Шекспира</p>
+                        </button>
+                        <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                            <p class="font-medium">Спланируйте 3-дневную поездку в Париж</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">С бюджетными вариантами</p>
+                        </button>
+                        <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                            <p class="font-medium">Помогите отладить код</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Python, JavaScript и др.</p>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Область ввода сообщений -->
+    <div class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+        <div class="max-w-3xl mx-auto relative">
+            <div class="flex items-end space-x-2">
+                <div class="flex-1 relative">
+                    <textarea id="messageInput"
+                              class="message-input w-full p-3 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Напишите сообщение DeepSeek..." rows="1">
+                    </textarea>
+                    <button id="sendButton"
+                            class="absolute right-2 bottom-2 p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
+                            title="Отправить сообщение">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+                DeepSeek может допускать ошибки. Проверяйте важную информацию.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

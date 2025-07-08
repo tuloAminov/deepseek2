@@ -1,0 +1,107 @@
+/* Основные стили для контейнера чата */
+.chat-container {
+    height: calc(100vh - 80px);
+}
+
+/* Стилизация поля ввода сообщения */
+.message-input {
+    resize: none;
+}
+
+/* Анимация индикатора набора сообщения */
+.typing-indicator::after {
+    content: '.';
+    animation: typing 1.5s infinite;
+}
+
+@keyframes typing {
+    0% { content: '.'; }
+    33% { content: '..'; }
+    66% { content: '...'; }
+}
+
+/* Стилизация боковой панели */
+.sidebar {
+    transition: transform 0.3s ease;
+}
+
+/* Стили по методологии БЭМ */
+.chat__header {
+    background-color: #fff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.chat__header--dark {
+    background-color: #1f2937;
+    border-color: #374151;
+}
+
+.chat__title {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.chat__message--user {
+    background-color: #3b82f6;
+    color: #fff;
+}
+
+.chat__message--ai {
+    background-color: #f3f4f6;
+}
+
+.chat__message--ai-dark {
+    background-color: #374151;
+}
+
+.chat__suggestion {
+    background-color: #f3f4f6;
+}
+
+.chat__suggestion:hover {
+    background-color: #e5e7eb;
+}
+
+.chat__suggestion--dark {
+    background-color: #374151;
+}
+
+.chat__suggestion--dark:hover {
+    background-color: #4b5563;
+}
+
+
+
+
+
+/* Адаптив для мобильных устройств */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        height: 100vh;
+        z-index: 50;
+        transform: translateX(-100%);
+    }
+
+    .sidebar-open {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 40;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+}

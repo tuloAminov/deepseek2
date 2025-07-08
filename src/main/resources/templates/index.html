@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>название страницы</title>
+    <meta name="description" content="Описание страницы">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+</head>
+<body>
+<h1>Ask a question</h1>
+
+<!-- Форма с полем для вопроса -->
+<form id="questionForm">
+    <label for="question">Your question:</label><br>
+    <input type="text" id="question" name="question" required><br><br>
+    <button type="submit">Ask</button>
+</form>
+
+<!-- Блок для ответа -->
+<div id="answer"></div>
+
+<!-- JavaScript для отправки формы -->
+<script>
+    document.getElementById("questionForm").addEventListener("submit", async function(event) {
+        event.preventDefault(); // Предотвращаем стандартную отправку формы
+
+        const question = document.getElementById("question").value;
+
+        try {
+            const response = await fetch("http://localhost:8080/api/deepseek/ask", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(question),
+            });
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+
+            const answer = await response.text();
+            document.getElementById("answer").innerText = `Answer: ${answer}`;
+        } catch (error) {
+            console.error("Error:", error);
+            document.getElementById("answer").innerText = "Failed to get an answer.";
+        }
+    });
+</script>
+</body>
+</html>

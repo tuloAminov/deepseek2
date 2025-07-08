@@ -14,7 +14,7 @@ import java.util.List;
 @Slf4j
 @Service
 public class DeepSeekClient {
-    private final String apiKey = "";
+    private final String apiKey = "12e411111e1e23dewfewfwfwef";
     private final String apiUrl = "https://api.deepseek.com/v1/chat/completions";
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
