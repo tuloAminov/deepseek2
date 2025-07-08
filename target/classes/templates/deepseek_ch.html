@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Основные стили для контейнера чата */
+        .chat-container {
+            height: calc(100vh - 80px);
+        }
+        
+        /* Стилизация поля ввода сообщения */
+        .message-input {
+            resize: none;
+        }
+        
+        /* Анимация индикатора набора сообщения */
+        .typing-indicator::after {
+            content: '.';
+            animation: typing 1.5s infinite;
+        }
+        
+        @keyframes typing {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+        }
+        
+        /* Стилизация боковой панели */
+        .sidebar {
+            transition: transform 0.3s ease;
+        }
+        
+        /* Адаптив для мобильных устройств */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 260px;
+                height: 100vh;
+                z-index: 50;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar-open {
+                transform: translateX(0);
+            }
+            
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0,0,0,0.5);
+                z-index: 40;
+            }
+            
+            .sidebar-overlay.active {
+                display: block;
+            }
+        }
+        
+        /* Стили по методологии БЭМ */
+        .chat__header {
+            background-color: #fff;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .chat__header--dark {
+            background-color: #1f2937;
+            border-color: #374151;
+        }
+        
+        .chat__title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        
+        .chat__message--user {
+            background-color: #3b82f6;
+            color: #fff;
+        }
+        
+        .chat__message--ai {
+            background-color: #f3f4f6;
+        }
+        
+        .chat__message--ai-dark {
+            background-color: #374151;
+        }
+        
+        .chat__suggestion {
+            background-color: #f3f4f6;
+        }
+        
+        .chat__suggestion:hover {
+            background-color: #e5e7eb;
+        }
+        
+        .chat__suggestion--dark {
+            background-color: #374151;
+        }
+        
+        .chat__suggestion--dark:hover {
+            background-color: #4b5563;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+    <!-- Кнопка открытия боковой панели для мобильных устройств -->
+    <div class="md:hidden fixed top-4 left-4 z-30">
+        <button id="sidebarToggle" class="p-2 rounded-md bg-gray-200 dark:bg-gray-700">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Затемнение фона для мобильной боковой панели -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <!-- Боковая панель -->
+    <div id="sidebar" class="sidebar bg-white dark:bg-gray-800 w-64 border-r border-gray-200 dark:border-gray-700 flex flex-col fixed h-full">
+        <!-- Заголовок боковой панели -->
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold">DeepSeek Chat</h1>
+                <button id="newChatBtn" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" title="Новый чат">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- История чатов -->
+        <div class="flex-1 overflow-y-auto">
+            <div id="chatHistory" class="p-2 space-y-1">
+                <!-- Элементы истории чатов будут добавлены с помощью JavaScript -->
+            </div>
+        </div>
+
+        <!-- Нижний колонтитул боковой панели -->
+        <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span class="font-medium">Пользователь</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="ml-0 md:ml-64 transition-all duration-300">
+        <!-- Заголовок чата -->
+        <header class="chat__header dark:chat__header--dark border-b border-gray-200 dark:border-gray-700 p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <h2 id="currentChatTitle" class="chat__title">Новый чат</h2>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="downloadChatBtn" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" title="Скачать чат как TXT">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" title="Поделиться">
+                        <i class="fas fa-share"></i>
+                    </button>
+                    <button class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" title="Дополнительно">
+                        <i class="fas fa-ellipsis-vertical"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Контейнер чата -->
+        <div class="chat-container overflow-y-auto bg-gray-50 dark:bg-gray-900">
+            <div id="chatMessages" class="max-w-3xl mx-auto p-4 space-y-6">
+                <!-- Приветственное сообщение -->
+                <div class="flex justify-center">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm max-w-2xl w-full text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                            <i class="fas fa-robot text-blue-500 dark:text-blue-300 text-2xl"></i>
+                        </div>
+                        <h2 class="text-xl font-bold mb-2">Добро пожаловать в DeepSeek Chat</h2>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">Задайте мне любой вопрос: от творческих идей до технических объяснений.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                                <p class="font-medium">Объясните квантовые вычисления</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Простым языком</p>
+                            </button>
+                            <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                                <p class="font-medium">Напишите стихотворение об ИИ</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">В стиле Шекспира</p>
+                            </button>
+                            <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                                <p class="font-medium">Спланируйте 3-дневную поездку в Париж</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">С бюджетными вариантами</p>
+                            </button>
+                            <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                                <p class="font-medium">Помогите отладить код</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Python, JavaScript и др.</p>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Область ввода сообщений -->
+        <div class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+            <div class="max-w-3xl mx-auto relative">
+                <div class="flex items-end space-x-2">
+                    <div class="flex-1 relative">
+                        <textarea id="messageInput" class="message-input w-full p-3 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Напишите сообщение DeepSeek..." rows="1"></textarea>
+                        <button id="sendButton" class="absolute right-2 bottom-2 p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400" title="Отправить сообщение">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+                    DeepSeek может допускать ошибки. Проверяйте важную информацию.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Запуск кода после полной загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Получение элементов DOM
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const chatMessages = document.getElementById('chatMessages');
+            const chatHistory = document.getElementById('chatHistory');
+            const newChatBtn = document.getElementById('newChatBtn');
+            const currentChatTitle = document.getElementById('currentChatTitle');
+            const suggestionBtns = document.querySelectorAll('.chat__suggestion');
+            const downloadChatBtn = document.getElementById('downloadChatBtn');
+            
+            // Состояние приложения
+            let chats = JSON.parse(localStorage.getItem('chats')) || [];
+            let currentChatId = null;
+            let isAIResponding = false;
+
+            // Инициализация приложения
+            if (chats.length > 0) {
+                loadChatHistory();
+                openChat(chats[0].id);
+            }
+
+            // Назначение обработчиков событий
+            sidebarToggle.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            newChatBtn.addEventListener('click', createNewChat);
+            downloadChatBtn.addEventListener('click', downloadChatAsTxt);
+            
+            // Автоматическое изменение высоты текстового поля
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+
+            // Добавление обработчиков для кнопок предложений
+            suggestionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const text = this.querySelector('p:first-child').textContent;
+                    messageInput.value = text;
+                    messageInput.focus();
+                });
+            });
+
+            // Функции приложения
+            
+            // Переключение видимости боковой панели
+            function toggleSidebar() {
+                sidebar.classList.toggle('sidebar-open');
+                sidebarOverlay.classList.toggle('active');
+            }
+
+            // Создание нового чата
+            function createNewChat() {
+                const newChat = {
+                    id: Date.now().toString(),
+                    title: 'Новый чат',
+                    messages: [],
+                    createdAt: new Date().toISOString()
+                };
+                
+                chats.unshift(newChat);
+                saveChats();
+                loadChatHistory();
+                openChat(newChat.id);
+                
+                // Очистка области сообщений и показ приветствия
+                chatMessages.innerHTML = `
+                    <div class="flex justify-center">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm max-w-2xl w-full text-center">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                <i class="fas fa-robot text-blue-500 dark:text-blue-300 text-2xl"></i>
+                            </div>
+                            <h2 class="text-xl font-bold mb-2">Добро пожаловать в DeepSeek Chat</h2>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">Задайте мне любой вопрос: от творческих идей до технических объяснений.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                                    <p class="font-medium">Объясните квантовые вычисления</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Простым языком</p>
+                                </button>
+                                <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                                    <p class="font-medium">Напишите стихотворение об ИИ</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">В стиле Шекспира</p>
+                                </button>
+                                <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                                    <p class="font-medium">Спланируйте 3-дневную поездку в Париж</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">С бюджетными вариантами</p>
+                                </button>
+                                <button class="chat__suggestion dark:chat__suggestion--dark hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 text-left">
+                                    <p class="font-medium">Помогите отладить код</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Python, JavaScript и др.</p>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Повторное добавление обработчиков для кнопок предложений
+                document.querySelectorAll('.chat__suggestion').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const text = this.querySelector('p:first-child').textContent;
+                        messageInput.value = text;
+                        messageInput.focus();
+                    });
+                });
+                
+                // Закрытие боковой панели на мобильных устройствах
+                if (window.innerWidth < 768) {
+                    toggleSidebar();
+                }
+            }
+
+            // Отправка сообщения
+            function sendMessage() {
+                const messageText = messageInput.value.trim();
+                if (!messageText || isAIResponding) return;
+
+                // Создание нового чата, если нет текущего
+                if (!currentChatId || !chats.find(c => c.id === currentChatId)) {
+                    createNewChat();
+                    return;
+                }
+
+                // Добавление сообщения пользователя
+                const userMessage = {
+                    id: Date.now().toString(),
+                    text: messageText,
+                    sender: 'user',
+                    timestamp: new Date().toISOString()
+                };
+
+                addMessageToChat(userMessage);
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                
+                // Показ индикатора набора сообщения
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'flex space-x-3';
+                typingIndicator.innerHTML = `
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <i class="fas fa-robot text-gray-500 dark:text-gray-400"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+                            <div class="typing-indicator text-gray-500 dark:text-gray-400">Думаю</div>
+                        </div>
+                    </div>
+                `;
+                chatMessages.appendChild(typingIndicator);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                isAIResponding = true;
+                
+                // Имитация ответа ИИ с задержкой
+                setTimeout(() => {
+                    // Удаление индикатора набора
+                    chatMessages.removeChild(typingIndicator);
+                    
+                    // Генерация ответа ИИ
+                    const aiResponse = generateAIResponse(messageText);
+                    const aiMessage = {
+                        id: Date.now().toString(),
+                        text: aiResponse,
+                        sender: 'ai',
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    addMessageToChat(aiMessage);
+                    isAIResponding = false;
+                    
+                    // Обновление заголовка чата для первого сообщения
+                    const chat = chats.find(c => c.id === currentChatId);
+                    if (chat.messages.length === 2) { // пользователь + ИИ
+                        chat.title = messageText.substring(0, 30) + (messageText.length > 30 ? '...' : '');
+                        currentChatTitle.textContent = chat.title;
+                        saveChats();
+                        loadChatHistory();
+                    }
+                }, 1500 + Math.random() * 2000);
+            }
+
+            // Добавление сообщения в чат
+            function addMessageToChat(message) {
+                const chat = chats.find(c => c.id === currentChatId);
+                if (!chat) return;
+                
+                chat.messages.push(message);
+                saveChats();
+                
+                // Отображение сообщения
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `flex space-x-3 ${message.sender === 'user' ? 'justify-end' : ''}`;
+                
+                if (message.sender === 'user') {
+                    messageDiv.innerHTML = `
+                        <div class="flex-1 max-w-xl flex justify-end">
+                            <div class="chat__message--user rounded-lg p-4">
+                                ${escapeHtml(message.text)}
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    `;
+                } else {
+                    messageDiv.innerHTML = `
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                            <i class="fas fa-robot text-gray-500 dark:text-gray-400"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="chat__message--ai dark:chat__message--ai-dark rounded-lg p-4">
+                                ${formatAIMessage(message.text)}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Генерация ответа ИИ
+            function generateAIResponse(userMessage) {
+                // В реальном приложении здесь будет вызов API
+                const responses = [
+                    `Я понял, что вы спрашиваете о "${userMessage}". Вот подробное объяснение...`,
+                    `Это интересный вопрос о "${userMessage}". Позвольте мне объяснить...`,
+                    `Относительно "${userMessage}", вот что я могу сказать...`,
+                    `Буду рад помочь с "${userMessage}". Вот необходимая информация...`,
+                    `"${userMessage}" - увлекательная тема. Вот основные моменты...`
+                ];
+                
+                // Иногда добавляем блоки кода или списки
+                if (userMessage.toLowerCase().includes('код') || Math.random() > 0.7) {
+                    return `${responses[Math.floor(Math.random() * responses.length)]}
+                    
+Пример кода:
+\`\`\`javascript
+function пример() {
+    console.log("Это пример кода");
+    return "Привет, мир!";
+}
+\`\`\`
+
+Сообщите, если нужно что-то пояснить.`;
+                } else if (userMessage.toLowerCase().includes('список') || Math.random() > 0.7) {
+                    return `${responses[Math.floor(Math.random() * responses.length)]}
+
+Основные моменты:
+1. Первый важный пункт
+2. Второй ключевой аспект
+3. Третье соображение
+4. Последний важный момент`;
+                } else {
+                    return responses[Math.floor(Math.random() * responses.length)];
+                }
+            }
+
+            // Открытие чата
+            function openChat(chatId) {
+                currentChatId = chatId;
+                const chat = chats.find(c => c.id === chatId);
+                if (!chat) return;
+                
+                currentChatTitle.textContent = chat.title;
+                
+                // Очистка и загрузка сообщений
+                chatMessages.innerHTML = '';
+                chat.messages.forEach(message => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `flex space-x-3 ${message.sender === 'user' ? 'justify-end' : ''}`;
+                    
+                    if (message.sender === 'user') {
+                        messageDiv.innerHTML = `
+                            <div class="flex-1 max-w-xl flex justify-end">
+                                <div class="chat__message--user rounded-lg p-4">
+                                    ${escapeHtml(message.text)}
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        `;
+                    } else {
+                        messageDiv.innerHTML = `
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                <i class="fas fa-robot text-gray-500 dark:text-gray-400"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="chat__message--ai dark:chat__message--ai-dark rounded-lg p-4">
+                                    ${formatAIMessage(message.text)}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    chatMessages.appendChild(messageDiv);
+                });
+                
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Закрытие боковой панели на мобильных устройствах
+                if (window.innerWidth < 768) {
+                    toggleSidebar();
+                }
+            }
+
+            // Загрузка истории чатов
+            function loadChatHistory() {
+                chatHistory.innerHTML = '';
+                
+                chats.forEach(chat => {
+                    const chatItem = document.createElement('div');
+                    chatItem.className = `p-3 rounded-lg cursor-pointer flex items-center justify-between ${chat.id === currentChatId ? 'bg-blue-100 dark:bg-blue-900' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`;
+                    chatItem.innerHTML = `
+                        <div class="flex items-center space-x-3 truncate">
+                            <i class="fas fa-comment text-gray-500 dark:text-gray-400"></i>
+                            <span class="truncate">${escapeHtml(chat.title)}</span>
+                        </div>
+                        <button class="chat-delete-btn p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400" data-chat-id="${chat.id}" title="Удалить чат">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    `;
+                    
+                    chatItem.addEventListener('click', () => openChat(chat.id));
+                    
+                    const deleteBtn = chatItem.querySelector('.chat-delete-btn');
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteChat(chat.id);
+                    });
+                    
+                    chatHistory.appendChild(chatItem);
+                });
+            }
+
+            // Удаление чата
+            function deleteChat(chatId) {
+                if (confirm('Вы уверены, что хотите удалить этот чат?')) {
+                    chats = chats.filter(c => c.id !== chatId);
+                    saveChats();
+                    
+                    if (currentChatId === chatId) {
+                        if (chats.length > 0) {
+                            openChat(chats[0].id);
+                        } else {
+                            createNewChat();
+                        }
+                    }
+                    
+                    loadChatHistory();
+                }
+            }
+
+            // Сохранение чатов в localStorage
+            function saveChats() {
+                localStorage.setItem('chats', JSON.stringify(chats));
+            }
+
+            // Экранирование HTML для безопасности
+            function escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            // Форматирование сообщения ИИ
+            function formatAIMessage(text) {
+                // Преобразование блоков кода в HTML
+                text = text.replace(/```(\w*)([\s\S]*?)```/g, function(match, language, code) {
+                    return `<pre class="bg-gray-200 dark:bg-gray-800 p-3 rounded-md overflow-x-auto my-2"><code class="language-${language}">${escapeHtml(code.trim())}</code></pre>`;
+                });
+                
+                // Преобразование жирного текста
+                text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                // Преобразование курсивного текста
+                text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                
+                // Преобразование списков
+                text = text.replace(/^\s*\d+\.\s(.*)$/gm, '<li>$1</li>');
+                text = text.replace(/^\s*-\s(.*)$/gm, '<li>$1</li>');
+                
+                // Добавление переносов строк
+                text = text.replace(/\n/g, '<br>');
+                
+                return text;
+            }
+
+            // Скачивание чата в формате TXT
+            function downloadChatAsTxt() {
+                if (!currentChatId) return;
+                
+                const chat = chats.find(c => c.id === currentChatId);
+                if (!chat || chat.messages.length === 0) {
+                    alert('Нет сообщений для скачивания');
+                    return;
+                }
+                
+                // Форматирование сообщений для TXT
+                let txtContent = `DeepSeek Chat - ${chat.title}\n\n`;
+                txtContent += `Создан: ${new Date(chat.createdAt).toLocaleString()}\n\n`;
+                txtContent += "Сообщения:\n\n";
+                
+                chat.messages.forEach(message => {
+                    const timestamp = new Date(message.timestamp).toLocaleString();
+                    const sender = message.sender === 'user' ? 'Вы' : 'DeepSeek';
+                    
+                    // Очистка текста сообщения (удаление форматирования)
+                    let cleanText = message.text
+                        .replace(/```[\s\S]*?```/g, '') // Удаление блоков кода
+                        .replace(/\*\*(.*?)\*\*/g, '$1') // Удаление жирного текста
+                        .replace(/\*(.*?)\*/g, '$1'); // Удаление курсива
+                    
+                    txtContent += `${timestamp} - ${sender}:\n${cleanText}\n\n`;
+                });
+                
+                // Создание ссылки для скачивания
+                const blob = new Blob([txtContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `DeepSeek_Чат_${chat.title.replace(/[^a-zа-яё0-9]/gi, '_')}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        });
+    </script>
+</body>
+</html>

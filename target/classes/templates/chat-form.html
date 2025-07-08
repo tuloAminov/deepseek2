@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+< html  xmlns:th = " http://www.thymeleaf.org " >
+
+< head >
+
+< title > Чат DeepSeek AI </ title >
+
+< link  href = " https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css "  rel = " stylesheet ">
+
+< style >
+
+body  {
+
+background : linear-gradient ( 135 deg , #667eea , #764ba2 ) ;
+
+height : 100 vh ;
+
+display : flex;
+
+align-items : center;
+
+justify-content : center;
+
+}
+
+.chat-container  {
+
+width : 550 px ;
+
+height : 400 px ;
+
+padding : 20 px ;
+
+background : #e6f7ff ;
+
+border-radius : 15 px ;
+
+box-shadow : 0 пикселей  10 пикселей  25 пикселей  rgba ( 0 , 0 , 0 , 0.3 ) ;
+
+display : flex;
+
+flex-direction : column;
+
+justify-content : space-between;
+
+}
+
+.form-title  {
+
+font-size : 1.8 rem ;
+
+font-weight : bold;
+
+color : mediumblue;
+
+text-align : center;
+
+margin-bottom : 20 пикселей ;
+
+}
+
+.form-label  {
+
+font-size : 1.5 rem ;
+
+font-weight : normal;
+
+}
+
+.input-group  {
+
+display : flex;
+
+align-items : center;
+
+}
+
+.form-control  {
+
+font-size : 1.2 rem ;
+
+padding : 8 пикселей ;
+
+flex : 1 ;
+
+overflow : auto;
+
+}
+
+.btn-send  {
+
+background : linear-gradient ( 135 deg , #007bff , #0056b3 ) ;
+
+border : none;
+
+color : white;
+
+font-size : 2 rem ;
+
+width : 50 px ;
+
+height : 50 px ;
+
+border-radius : 50 % ;
+
+display : flex;
+
+align-items : center;
+
+justify-content : center;
+
+margin-left : 10 px ;
+
+transition : background 0.3 s ease-in-out, transform 0.2 s ;
+
+}
+
+.btn-send:hover  {
+
+background : linear-gradient ( 135 deg , #0056b3 , #007bff ) ;
+
+transform : scale ( 1.1 ) ;
+
+}
+
+textarea  {
+
+font-size : 1.4 rem ;
+
+высота : 120 пикселей ;
+
+изменение размера : нет;
+
+цвет : синий;
+
+}
+
+body , .form-title , .form-label , .form-control , .btn-send , textarea  {
+
+font-family : 'Arial Nova' , sans-serif;
+
+}
+
+</ style >
+
+</ head >
+
+< body >
+
+< div  class = " chat-container ">
+
+< h2  class = " form-title "> Интеграция DeepSeek < br > с приложением Java Spring Boot </ h2 >
+
+< form  th:action = " @{/sendPrompt} "  method = " post ">
+
+< div  class = " mb-2 ">
+
+< label  for = " chat " class = " form-label "> Введите запрос: </ label >
+
+< div  class = " input-group ">
+
+< input  type = " text "  id = " chat "  name = " chat "  class = " form-control "  placeholder = " Спросите меня о чем угодно... "  required>
+
+< button  type = " submit "  class = " btn btn-send "> ⬆ </ button >
+
+</ div >
+
+</ div >
+
+</ form >
+
+< hr >
+
+< label  class = " form-label text-secondary "> Ответ: </ label >
+
+< textarea  id = " response "  class = " form-control "  readonly  th:text = " ${response} " ></ textarea >
+
+< p  class = " text-danger mt-2 "  th:text = " ${error} " ></ p >
+
+</ div >
+
+< script  src = "https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" ></ скрипт >
+
+< скрипт  src = "https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.min.js" ></ скрипт >
+
+</ тело >
+
+</ html >
