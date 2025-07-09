@@ -1,10 +1,13 @@
 package com.AA.deepseek.controllers;
 
+import com.AA.deepseek.dto.DeepSeekResponse;
 import com.AA.deepseek.services.DeepSeekService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/api/deepseek")
@@ -16,13 +19,18 @@ public class DeepSeekController {
         this.deepSeekService = deepSeekService;
     }
 
-    @GetMapping("/")
-    public String index() {
+    @GetMapping("/ask")
+    public String ask() {
         return "index";
     }
 
     @PostMapping("/ask")
-    public String askQuestion(@RequestBody String question) {
-        return deepSeekService.getAnswer(question).getChoices();
+    public String answer(
+            @RequestParam("question") String question,  // Получаем вопрос из формы
+            Model model  // Передаём данные в шаблон
+    ) {
+        DeepSeekResponse response = deepSeekService.getAnswer(question);
+        model.addAttribute("answer", response.getChoices().get(0).getMessage().getContent());
+        return "answer-page";  // Имя шаблона (answer-page.html)
     }
 }

@@ -21,20 +21,34 @@ public class DeepSeekServiceImpl implements DeepSeekService {
 
     @Override
     public DeepSeekResponse getAnswer(String userQuestion) {
-        if (userQuestion.equals("456789"))
-            return apiClient.askQuestion(userQuestion);
+        if (userQuestion.equals("456789")) {
+            DeepSeekResponse deepSeekResponse = new DeepSeekResponse();
+            deepSeekResponse.setId("55");
+            deepSeekResponse.setObject("def");
+            deepSeekResponse.setCreated(4545);
+            List<Choice> choices = new ArrayList<>();
+            Choice choice = new Choice();
+            choice.setIndex(5555);
+            choice.setMessage(new Message("admin", "это поле content"));
+            choices.add(choice);
+            deepSeekResponse.setChoices(choices);
 
-        DeepSeekResponse deepSeekResponse = new DeepSeekResponse();
-        deepSeekResponse.setId("55");
-        deepSeekResponse.setObject("def");
-        deepSeekResponse.setCreated(4545);
-        List<Choice> choices = new ArrayList<>();
-        Choice choice = new Choice();
-        choice.setIndex(5555);
-        choice.setMessage(new Message("admin", "это поле content"));
-        choices.add(choice);
-        deepSeekResponse.setChoices(choices);
+            return deepSeekResponse;
+        }
 
-        return deepSeekResponse;
+        else {
+            DeepSeekResponse deepSeekResponse = new DeepSeekResponse();
+            deepSeekResponse.setId("884");
+            deepSeekResponse.setObject("lk.");
+            deepSeekResponse.setCreated(8989);
+            List<Choice> choices = new ArrayList<>();
+            Choice choice = new Choice();
+            choice.setIndex(8888);
+            choice.setMessage(new Message("afer", "fdghefgf"));
+            choices.add(choice);
+            deepSeekResponse.setChoices(choices);
+
+            return deepSeekResponse;
+        }
     }
 }

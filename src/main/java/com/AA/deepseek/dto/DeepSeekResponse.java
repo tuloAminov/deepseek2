@@ -40,11 +40,4 @@ public class DeepSeekResponse {
     public void setChoices(List<Choice> choices) {
         this.choices = choices;
     }
-
-    public String getFirstChoiceContent() {
-        if (choices != null && !choices.isEmpty()) {
-            return choices.get(0).getMessage().getContent();
-        }
-        return null;
-    }
 }
