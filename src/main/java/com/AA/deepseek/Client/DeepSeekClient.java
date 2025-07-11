@@ -32,19 +32,7 @@ public class DeepSeekClient {
                 new Message("user", userMessage)
         ));
 
-        DeepSeekResponse deepSeekResponse = new DeepSeekResponse();
-        deepSeekResponse.setId("88");
-        deepSeekResponse.setObject("juk");
-        deepSeekResponse.setCreated(8989);
-        List<Choice> choices = new ArrayList<>();
-        Choice choice = new Choice();
-        choice.setIndex(8888);
-        choice.setMessage(new Message("no admin", "это 2ое поле content"));
-        choices.add(choice);
-        deepSeekResponse.setChoices(choices);
-        return deepSeekResponse;
-
-        /*HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + apiKey);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -68,6 +56,6 @@ public class DeepSeekClient {
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to call DeepSeek API", e);
-        }*/
+        }
     }
 }
