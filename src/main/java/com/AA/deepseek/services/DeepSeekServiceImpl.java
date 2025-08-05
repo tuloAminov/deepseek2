@@ -20,7 +20,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
     }
 
     @Override
-    public DeepSeekResponse getAnswer(String userQuestion) {
+    public String getAnswer(String userQuestion) {
         if (userQuestion.equals("456789")) {
             DeepSeekResponse deepSeekResponse = new DeepSeekResponse();
             deepSeekResponse.setId("55");
@@ -33,7 +33,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
             choices.add(choice);
             deepSeekResponse.setChoices(choices);
 
-            return deepSeekResponse;
+            return deepSeekResponse.getChoices().get(0).getMessage().getContent();
         }
 
         else {
@@ -48,7 +48,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
             choices.add(choice);
             deepSeekResponse.setChoices(choices);
 
-            return deepSeekResponse;
+            return deepSeekResponse.getChoices().get(0).getMessage().getContent();
         }
     }
 }

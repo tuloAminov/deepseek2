@@ -24,5 +24,4 @@ public class ChatResponse {
     public void setAnswer(String answer) {
         this.answer = answer;
     }
-
 }

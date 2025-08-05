@@ -1,6 +1,5 @@
 package com.AA.deepseek.Client;
 
-import com.AA.deepseek.dto.Choice;
 import com.AA.deepseek.dto.DeepSeekRequest;
 import com.AA.deepseek.dto.DeepSeekResponse;
 import com.AA.deepseek.dto.Message;
@@ -10,14 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Service
 public class DeepSeekClient {
-    private final String apiKey = "12e411111e1e23dewfewfwfwef";
-    private final String apiUrl = "https://api.deepseek.com/v1/chat/completions";
+    private final String apiKey = "";
+    private final String apiUrl = "";
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
@@ -26,7 +24,7 @@ public class DeepSeekClient {
         this.objectMapper = objectMapper;
     }
 
-    public DeepSeekResponse askQuestion(String userMessage) {
+    public String askQuestion(String userMessage) {
         DeepSeekRequest request = new DeepSeekRequest();
         request.setMessages(List.of(
                 new Message("user", userMessage)
@@ -52,7 +50,7 @@ public class DeepSeekClient {
             System.out.println("Ответ: " + deepSeekResponse.getObject());
             System.out.println("Ответ: " + deepSeekResponse.getCreated());
             System.out.println("Ответ: " + deepSeekResponse.getChoices().get(0).getMessage().getContent());
-            return deepSeekResponse;
+            return deepSeekResponse.getChoices().get(0).getMessage().getContent();
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to call DeepSeek API", e);

@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const questionInput = document.getElementById('questionInput');
     const chatMessages = document.getElementById('chatMessages');
     const welcomeMessage = document.getElementById('welcomeMessage');
+    const downloadChatBtn = document.getElementById('downloadChatBtn');
 
     // Обработка отправки формы
     if (questionForm) {
@@ -66,22 +67,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Прокручиваем вниз
         chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    // Обработка мобильного меню (остается без изменений)
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-    if (sidebarToggle && sidebar && sidebarOverlay) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('hidden');
-            sidebarOverlay.classList.toggle('hidden');
-        });
-
-        sidebarOverlay.addEventListener('click', function() {
-            sidebar.classList.add('hidden');
-            sidebarOverlay.classList.add('hidden');
-        });
     }
 });

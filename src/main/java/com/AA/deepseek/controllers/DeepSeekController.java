@@ -1,6 +1,5 @@
 package com.AA.deepseek.controllers;
 
-import com.AA.deepseek.dto.ChatMessage;
 import com.AA.deepseek.dto.ChatResponse;
 import com.AA.deepseek.dto.Question;
 import com.AA.deepseek.services.DeepSeekService;
@@ -19,7 +18,7 @@ import java.util.List;
 @RequestMapping("/api/deepseek")
 public class DeepSeekController {
     private final DeepSeekService deepSeekService;
-    private final List<ChatMessage> chatHistory = new ArrayList<>();
+    private final List<ChatResponse> chatHistory = new ArrayList<>();
 
     @Autowired
     public DeepSeekController(DeepSeekService deepSeekService) {
@@ -37,13 +36,12 @@ public class DeepSeekController {
     @ResponseBody
     public ResponseEntity<ChatResponse> handleQuestion(@RequestBody Question question) {
         try {
-            String answer = deepSeekService.getAnswer(question.getQuestion_text())
-                    .getChoices().get(0).getMessage().getContent();
+            String answer = deepSeekService.getAnswer(question.getQuestion_text());
 
-            ChatMessage chatMessage = new ChatMessage(question.getQuestion_text(), answer);
-            chatHistory.add(chatMessage);
+            chatHistory.add(new ChatResponse(question.getQuestion_text(), answer));
 
             return ResponseEntity.ok(new ChatResponse(question.getQuestion_text(), answer));
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ChatResponse("", "Ошибка при обработке запроса: " + e.getMessage()));
