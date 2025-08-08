@@ -13,11 +13,6 @@ html, body {
     flex-direction: column;
 }
 
-.dark .app-container {
-    background-color: #111827;
-    color: #f3f4f6;
-}
-
 /* ===== Боковая панель ===== */
 .sidebar {
     width: 16rem;
@@ -31,18 +26,9 @@ html, body {
     transition: transform 0.3s ease;
 }
 
-.dark .sidebar {
-    background-color: #1f2937;
-    border-color: #374151;
-}
-
 .sidebar-header {
     padding: 1rem;
     border-bottom: 1px solid #e5e7eb;
-}
-
-.dark .sidebar-header {
-    border-color: #374151;
 }
 
 .sidebar-header-content {
@@ -70,10 +56,6 @@ html, body {
     background-color: #f3f4f6;
 }
 
-.dark .new-chat-button:hover {
-    background-color: #374151;
-}
-
 .sidebar-content {
     flex: 1;
     overflow-y: auto;
@@ -89,10 +71,6 @@ html, body {
 .sidebar-footer {
     padding: 1rem;
     border-top: 1px solid #e5e7eb;
-}
-
-.dark .sidebar-footer {
-    border-color: #374151;
 }
 
 .user-profile {
@@ -158,20 +136,12 @@ html, body {
     word-wrap: break-word;
 }
 
-.dark .bot-message {
-    background-color: #374151;
-}
-
 /* ===== Форматирование сообщений AI ===== */
 .bot-message pre {
     background-color: rgba(0,0,0,0.1);
     border-radius: 0.375rem;
     padding: 1rem;
     overflow-x: auto;
-}
-
-.dark .bot-message pre {
-    background-color: rgba(255,255,255,0.1);
 }
 
 .bot-message code {
@@ -181,20 +151,11 @@ html, body {
     border-radius: 0.25rem;
 }
 
-.dark .bot-message code {
-    background-color: rgba(255,255,255,0.1);
-}
-
 .bot-message blockquote {
     border-left: 4px solid #ddd;
     padding-left: 1rem;
     margin-left: 0;
     color: #666;
-}
-
-.dark .bot-message blockquote {
-    border-left-color: #555;
-    color: #aaa;
 }
 
 /* ===== Основное содержимое ===== */
@@ -222,11 +183,6 @@ html, body {
     background-color: #ffffff;
     border-bottom: 1px solid #e5e7eb;
     padding: 1rem;
-}
-
-.dark .chat-header {
-    background-color: #1f2937;
-    border-color: #374151;
 }
 
 .header-content {
@@ -262,19 +218,11 @@ html, body {
     background-color: #f3f4f6;
 }
 
-.dark .header-button:hover {
-    background-color: #374151;
-}
-
 /* ===== Контейнер чата ===== */
 .chat-container {
     flex: 1;
     overflow-y: auto;
     background-color: #f9fafb;
-}
-
-.dark .chat-container {
-    background-color: #111827;
 }
 
 .chat-messages-container {
@@ -302,10 +250,6 @@ html, body {
     text-align: center;
 }
 
-.dark .welcome-message {
-    background-color: #1f2937;
-}
-
 .welcome-title {
     font-size: 1.25rem;
     font-weight: 700;
@@ -314,10 +258,6 @@ html, body {
 
 .welcome-text {
     color: #6b7280;
-}
-
-.dark .welcome-text {
-    color: #9ca3af;
 }
 
 /* ===== Сообщения чата ===== */
@@ -351,10 +291,6 @@ html, body {
 .chat-message.assistant {
     background-color: #f3f4f6;
     margin-right: auto;
-}
-
-.dark .chat-message-ai {
-    background-color: #374151;
 }
 
 /* ===== Поле ввода сообщений ===== */
@@ -391,12 +327,6 @@ html, body {
     font-size: inherit;
 }
 
-.dark .message-input {
-    background-color: #1f2937;
-    border-color: #374151;
-    color: inherit;
-}
-
 .message-input:focus {
     outline: none;
     border-color: transparent;
@@ -415,16 +345,8 @@ html, body {
     color: #6b7280;
 }
 
-.dark .send-button {
-    color: #9ca3af;
-}
-
 .send-button:hover {
     color: #3b82f6;
-}
-
-.dark .send-button:hover {
-    color: #60a5fa;
 }
 
 .input-footer {
@@ -433,10 +355,6 @@ html, body {
     line-height: 1rem;
     text-align: center;
     color: #6b7280;
-}
-
-.dark .input-footer {
-    color: #9ca3af;
 }
 
 /* ===== Мобильные стили ===== */
@@ -491,16 +409,8 @@ html, body {
     background-color: #f3f4f6;
 }
 
-.dark .chat-history-item:hover {
-    background-color: #374151;
-}
-
 .chat-history-item.active {
     background-color: #e5e7eb;
-}
-
-.dark .chat-history-item.active {
-    background-color: #4b5563;
 }
 
 .chat-history-content {
@@ -512,10 +422,6 @@ html, body {
 
 .chat-history-icon {
     color: #6b7280;
-}
-
-.dark .chat-history-icon {
-    color: #9ca3af;
 }
 
 .chat-history-title {
@@ -533,15 +439,7 @@ html, body {
     color: #6b7280;
 }
 
-.dark .delete-chat-button {
-    color: #9ca3af;
-}
-
 .delete-chat-button:hover {
     background-color: #e5e7eb;
     color: #ef4444;
-}
-
-.dark .delete-chat-button:hover {
-    background-color: #4b5563;
 }

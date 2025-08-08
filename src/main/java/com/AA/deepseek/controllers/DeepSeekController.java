@@ -1,6 +1,6 @@
 package com.AA.deepseek.controllers;
 
-import com.AA.deepseek.dto.ChatResponse;
+import com.AA.deepseek.entities.ChatResponse;
 import com.AA.deepseek.dto.Question;
 import com.AA.deepseek.services.DeepSeekService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ public class DeepSeekController {
         return "ask-question";
     }
 
-    @PostMapping(value = "/ask", consumes = MediaType.APPLICATION_JSON_VALUE)
+    /*@PostMapping(value = "/ask", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<ChatResponse> handleQuestion(@RequestBody Question question) {
         try {
@@ -46,5 +46,5 @@ public class DeepSeekController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ChatResponse("", "Ошибка при обработке запроса: " + e.getMessage()));
         }
-    }
+    }*/
 }
