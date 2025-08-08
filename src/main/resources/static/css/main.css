@@ -1,6 +1,5 @@
 /* ===== Основные стили ===== */
 html, body {
-    height: 100%;
     margin: 0;
     overflow: hidden;
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -200,8 +199,17 @@ html, body {
 
 /* ===== Основное содержимое ===== */
 .main-content {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Занимаем всю высоту viewport */
     margin-left: 0;
     transition: margin-left 0.3s ease;
+}
+
+.main-content-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 @media (min-width: 768px) {
@@ -260,7 +268,7 @@ html, body {
 
 /* ===== Контейнер чата ===== */
 .chat-container {
-    height: calc(100vh - 8rem);
+    flex: 1;
     overflow-y: auto;
     background-color: #f9fafb;
 }
@@ -351,14 +359,8 @@ html, body {
 
 /* ===== Поле ввода сообщений ===== */
 .message-input-area {
-    background-color: #ffffff;
-    border-top: 1px solid #e5e7eb;
+    background-color: #f3f4f6;
     padding: 1rem;
-}
-
-.dark .message-input-area {
-    background-color: #1f2937;
-    border-color: #374151;
 }
 
 .message-input-container {

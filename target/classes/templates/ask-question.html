@@ -54,60 +54,62 @@
 
 <!-- Основной контент -->
 <div class="main-content">
-    <header class="chat-header">
-        <div class="header-content">
-            <div class="header-left">
-                <h2 class="chat-title">Новый чат</h2>
-            </div>
-            <div class="header-right">
-                <button id="downloadChatBtn" class="header-button" title="Скачать чат как TXT">
-                    <i class="fas fa-download"></i>
-                </button>
-                <button class="header-button" title="Поделиться">
-                    <i class="fas fa-share"></i>
-                </button>
-                <button class="header-button" title="Дополнительно">
-                    <i class="fas fa-ellipsis-vertical"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <div class="chat-container">
-        <div id="chatMessages" class="chat-messages-container">
-            <!-- Приветственное сообщение -->
-            <div class="welcome-message-container" id="welcomeMessage">
-                <div class="welcome-message">
-                    <h2 class="welcome-title">Добро пожаловать в DeepSeek Chat</h2>
-                    <p class="welcome-text">Задайте мне любой вопрос, и я постараюсь помочь!</p>
+    <div class="main-content-container">
+        <header class="chat-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h2 class="chat-title">Новый чат</h2>
+                </div>
+                <div class="header-right">
+                    <button id="downloadChatBtn" class="header-button" title="Скачать чат как TXT">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="header-button" title="Поделиться">
+                        <i class="fas fa-share"></i>
+                    </button>
+                    <button class="header-button" title="Дополнительно">
+                        <i class="fas fa-ellipsis-vertical"></i>
+                    </button>
                 </div>
             </div>
+        </header>
 
-            <!-- История чата будет добавляться здесь динамически -->
-        </div>
-    </div>
-
-    <!-- Область ввода сообщений -->
-    <div class="message-input-area">
-        <div class="message-input-container">
-            <form id="questionForm">
-                <div class="input-wrapper">
-                    <div class="input-container">
-                        <input type="text"
-                               class="message-input"
-                               placeholder="Введите ваш вопрос..."
-                               id="questionInput"
-                               required>
-                        <button type="submit"
-                                class="send-button"
-                                title="Отправить сообщение">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
+        <div class="chat-container">
+            <div id="chatMessages" class="chat-messages-container">
+                <!-- Приветственное сообщение -->
+                <div class="welcome-message-container" id="welcomeMessage">
+                    <div class="welcome-message">
+                        <h2 class="welcome-title">Добро пожаловать в DeepSeek Chat</h2>
+                        <p class="welcome-text">Задайте мне любой вопрос, и я постараюсь помочь!</p>
                     </div>
                 </div>
-            </form>
-            <div class="input-footer">
-                DeepSeek может допускать ошибки. Проверяйте важную информацию.
+
+                <!-- История чата будет добавляться здесь динамически -->
+            </div>
+        </div>
+
+        <!-- Область ввода сообщений -->
+        <div class="message-input-area">
+            <div class="message-input-container">
+                <form id="questionForm">
+                    <div class="input-wrapper">
+                        <div class="input-container">
+                            <input type="text"
+                                   class="message-input"
+                                   placeholder="Введите ваш вопрос..."
+                                   id="questionInput"
+                                   required>
+                            <button type="submit"
+                                    class="send-button"
+                                    title="Отправить сообщение">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <div class="input-footer">
+                    DeepSeek может допускать ошибки. Проверяйте важную информацию.
+                </div>
             </div>
         </div>
     </div>
