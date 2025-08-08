@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 @Getter
 @Entity
 @NoArgsConstructor
+@ToString
 @Table(name = "chats")
 public class Chat {
     @Id
@@ -30,15 +32,5 @@ public class Chat {
 
     public Chat(Long id) {
         this.id = id;
-    }
-
-    @Override
-    public String toString() {
-        return "Chat{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", user=" + user +
-                ", messages=" + messages +
-                '}';
     }
 }

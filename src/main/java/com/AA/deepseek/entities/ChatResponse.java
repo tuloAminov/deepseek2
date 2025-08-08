@@ -4,11 +4,13 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @Entity
 @NoArgsConstructor
+@ToString
 @Table(name = "chat_responses")
 public class ChatResponse {
     @Id
@@ -24,14 +26,4 @@ public class ChatResponse {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_id", nullable = false)
     private Chat chat;
-
-    @Override
-    public String toString() {
-        return "ChatResponse{" +
-                "id=" + id +
-                ", question='" + question + '\'' +
-                ", answer='" + answer + '\'' +
-                ", chat=" + chat +
-                '}';
-    }
 }
