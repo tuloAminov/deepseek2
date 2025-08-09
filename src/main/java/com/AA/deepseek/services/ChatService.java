@@ -3,18 +3,18 @@ package com.AA.deepseek.services;
 import com.AA.deepseek.entities.Chat;
 import com.AA.deepseek.entities.ChatResponse;
 import com.AA.deepseek.entities.User;
-import com.AA.deepseek.repositories.ChatRepo;
-import com.AA.deepseek.repositories.ChatResponseRepo;
+import com.AA.deepseek.repositories.ChatRepository;
+import com.AA.deepseek.repositories.ChatResponseRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class ChatService {
-    private final ChatRepo chatRepository;
-    private final ChatResponseRepo chatResponseRepository;
+    private final ChatRepository chatRepository;
+    private final ChatResponseRepository chatResponseRepository;
 
-    public ChatService(ChatRepo chatRepository, ChatResponseRepo chatResponseRepository) {
+    public ChatService(ChatRepository chatRepository, ChatResponseRepository chatResponseRepository) {
         this.chatRepository = chatRepository;
         this.chatResponseRepository = chatResponseRepository;
     }
@@ -32,6 +32,10 @@ public class ChatService {
         response.setAnswer(answer);
         response.setChat(new Chat(chatId));  // Только ID чата
         return chatResponseRepository.save(response);
+    }
+
+    public List<Chat> getChats(Long userId) {
+        return chatRepository.findByUserId(userId);
     }
 
     public List<ChatResponse> getChatHistory(Long chatId) {

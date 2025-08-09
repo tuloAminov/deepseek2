@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Device Registration</title>
+</head>
+<body>
+<h1>Device Registration</h1>
+<form action="#" th:action="@{register}" method="post">
+    <label for="deviceId">Device ID:</label>
+    <input type="text" id="deviceId" name="deviceId" th:value="${deviceId}">
+    <button type="submit">Register</button>
+</form>
+</body>
+</html>

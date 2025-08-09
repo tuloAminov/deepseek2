@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface ChatResponseRepo extends JpaRepository<ChatResponse, Long> {
+public interface ChatResponseRepository extends JpaRepository<ChatResponse, Long> {
     List<ChatResponse> findByChatId(Long chatId);
 }
