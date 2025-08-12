@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
             this.initElements();
             this.initState();
             this.initEventListeners();
-            this.initChat();
             this.initMobileSidebar();
+            this.loadUserChats(); // Загружаем чаты пользователя при инициализации
         }
 
         initElements() {
@@ -26,8 +26,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         initState() {
-            this.chats = JSON.parse(localStorage.getItem('chats')) || [];
+            const deviceIdElement = document.getElementById('deviceId');
+            this.deviceId = deviceIdElement ? deviceIdElement.value
+                             : new URLSearchParams(window.location.search).get('deviceId')
+                             || localStorage.getItem('deviceId')
+                             || this.generateDeviceId();
+            localStorage.setItem('deviceId', this.deviceId);
+            this.chats = [];
             this.currentChatId = null;
+        }
+
+        generateDeviceId() {
+            return 'device-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36);
         }
 
         initEventListeners() {
@@ -50,12 +60,100 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        initChat() {
-            if (this.chats.length > 0) {
+        // ========== Работа с API ==========
+        async fetchWithErrorHandling(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    ...options
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('Fetch error:', error);
+                this.showError('Произошла ошибка при загрузке данных');
+                throw error;
+            }
+        }
+
+        // ========== Управление чатами ==========
+        async loadUserChats() {
+            try {
+                this.chats = await this.fetchWithErrorHandling(`/api/chat/list?deviceId=${this.deviceId}`);
                 this.renderChatHistory();
-                this.openChat(this.chats[0].id);
-            } else {
-                this.createNewChat();
+
+                if (this.chats.length > 0) {
+                    await this.openChat(this.chats[0].id);
+                } else {
+                    await this.createNewChat();
+                }
+            } catch (error) {
+                console.error('Failed to load chats:', error);
+            }
+        }
+
+        async createNewChat() {
+            try {
+                const chat = await this.fetchWithErrorHandling('/api/chat/create', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        deviceId: this.deviceId,
+                        title: `Новый чат ${new Date().toLocaleString()}`
+                    })
+                });
+
+                this.chats.unshift(chat);
+                this.renderChatHistory();
+                await this.openChat(chat.id);
+
+                // Обновим URL, чтобы сохранить deviceId
+                window.history.replaceState({}, '', `?deviceId=${this.deviceId}`);
+
+                // Закрываем мобильную боковую панель после создания чата
+                if (window.innerWidth < 768) {
+                    this.sidebar.classList.remove('sidebar-open');
+                    this.sidebarOverlay.classList.remove('active');
+                }
+            } catch (error) {
+                console.error('Failed to create chat:', error);
+                this.showError('Не удалось создать новый чат');
+            }
+        }
+
+        async openChat(chatId) {
+            try {
+                const messages = await this.fetchWithErrorHandling(`/api/chat/${chatId}/messages`);
+
+                this.currentChatId = chatId;
+                const chat = this.chats.find(c => c.id === chatId);
+                if (chat) {
+                    this.currentChatTitle.textContent = chat.title;
+                }
+
+                this.renderChatMessages(messages);
+                this.updateActiveChatInHistory();
+            } catch (error) {
+                console.error('Failed to open chat:', error);
+                this.showError('Не удалось загрузить сообщения чата');
+            }
+        }
+
+        async updateChatTitle(chatId, newTitle) {
+            try {
+                // Здесь можно добавить вызов API для обновления заголовка чата
+                const chat = this.chats.find(c => c.id === chatId);
+                if (chat) {
+                    chat.title = newTitle.length > 30 ? newTitle.substring(0, 30) + '...' : newTitle;
+                    this.renderChatHistory();
+                }
+            } catch (error) {
+                console.error('Failed to update chat title:', error);
             }
         }
 
@@ -63,128 +161,46 @@ document.addEventListener('DOMContentLoaded', function() {
         async handleQuestionSubmit(e) {
             e.preventDefault();
             const questionText = this.questionInput.value.trim();
-            if (!questionText) return;
+            if (!questionText || !this.currentChatId) return;
 
             this.addMessage(questionText, 'user');
             this.questionInput.value = '';
             this.hideWelcomeMessage();
 
             try {
-                const response = await fetch('/api/deepseek/ask', {
+                const data = await this.fetchWithErrorHandling(`/api/chat/${this.currentChatId}/send`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question_text: questionText })
+                    body: JSON.stringify({ question: questionText })
                 });
 
-                if (!response.ok) throw new Error('Ошибка сервера');
+                this.addMessage(data.answer, 'assistant');
 
-                const data = await response.json();
-                if (data.answer) {
-                    this.addMessage(data.answer, 'assistant');
-                    this.updateCurrentChatWithMessage(questionText, data.answer);
+                // Обновляем заголовок чата, если это первое сообщение
+                const chat = this.chats.find(c => c.id === this.currentChatId);
+                if (chat && (!chat.messages || chat.messages.length === 0)) {
+                    await this.updateChatTitle(this.currentChatId, questionText);
                 }
             } catch (error) {
-                console.error('Ошибка:', error);
-                this.addMessage(`Ошибка при получении ответа: ${error.message}`, 'assistant');
+                console.error('Failed to send message:', error);
+                this.addMessage('Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте снова.', 'assistant');
             }
         }
 
-        addMessage(text, sender) {
-            const container = document.createElement('div');
-            container.className = `chat-message-container ${sender}`;
-
-            if (sender === 'user') {
-                container.innerHTML = `
-                    <div class="message-content-container user">
-                        <div class="user-message">${this.escapeHtml(text)}</div>
-                    </div>
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = `
-                    <div class="bot-avatar">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="message-content-container">
-                        <div class="bot-message">${this.formatAIMessage(text)}</div>
-                    </div>
-                `;
-            }
-
-            this.chatMessages.appendChild(container);
-            this.scrollToBottom();
-        }
-
-        formatAIMessage(text) {
-            // Здесь может быть ваша логика форматирования сообщений AI
-            // Например, подсветка кода, обработка markdown и т.д.
-            return this.escapeHtml(text);
-        }
-
-        // ========== Управление чатами ==========
-        createNewChat() {
-            const newChat = {
-                id: `chat-${Date.now()}`,
-                title: `Новый чат ${this.chats.length + 1}`,
-                messages: [],
-                createdAt: new Date().toISOString()
-            };
-
-            this.chats.unshift(newChat);
-            this.saveChats();
-            this.renderChatHistory();
-            this.openChat(newChat.id);
-
-            // Закрываем мобильную боковую панель после создания чата
-            if (window.innerWidth < 768) {
-                this.sidebar.classList.remove('sidebar-open');
-                this.sidebarOverlay.classList.remove('active');
-            }
-        }
-
-        openChat(chatId) {
-            const chat = this.chats.find(c => c.id === chatId);
-            if (!chat) return;
-
-            this.currentChatId = chatId;
-            this.currentChatTitle.textContent = chat.title;
-            this.renderChatMessages(chat.messages);
-            this.updateActiveChatInHistory();
-        }
-
+        // ========== Отображение данных ==========
         renderChatMessages(messages) {
             this.chatMessages.innerHTML = '';
 
-            if (messages.length === 0) {
+            if (!messages || messages.length === 0) {
                 this.welcomeMessage.style.display = 'flex';
             } else {
                 this.hideWelcomeMessage();
                 messages.forEach(msg => {
-                    this.addMessage(msg.text, msg.sender);
+                    this.addMessage(msg.question || msg.text, 'user');
+                    this.addMessage(msg.answer || 'Это ответ', 'assistant');
                 });
             }
         }
 
-        updateCurrentChatWithMessage(question, answer) {
-            const chat = this.chats.find(c => c.id === this.currentChatId);
-            if (!chat) return;
-
-            chat.messages.push(
-                { text: question, sender: 'user' },
-                { text: answer, sender: 'assistant' }
-            );
-
-            if (chat.messages.length === 2 && chat.title.startsWith('Новый чат')) {
-                chat.title = question.slice(0, 30) + (question.length > 30 ? '...' : '');
-            }
-
-            this.saveChats();
-            this.renderChatHistory();
-        }
-
-        // ========== Работа с историей чатов ==========
         renderChatHistory() {
             this.chatHistory.innerHTML = '';
             this.chats.forEach(chat => {
@@ -229,59 +245,110 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        deleteChat(chatId) {
-            if (!confirm('Вы уверены, что хотите удалить этот чат?')) return;
+        addMessage(text, sender) {
+            const container = document.createElement('div');
+            container.className = `chat-message-container ${sender}`;
 
-            const index = this.chats.findIndex(c => c.id === chatId);
-            if (index === -1) return;
-
-            if (this.currentChatId === chatId) {
-                this.chats.splice(index, 1);
-                this.chats.length > 0
-                    ? this.openChat(this.chats[0].id)
-                    : this.createNewChat();
+            if (sender === 'user') {
+                container.innerHTML = `
+                    <div class="message-content-container user">
+                        <div class="user-message">${this.escapeHtml(text)}</div>
+                    </div>
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                `;
             } else {
-                this.chats.splice(index, 1);
+                container.innerHTML = `
+                    <div class="bot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content-container">
+                        <div class="bot-message">${this.escapeHtml(text)}</div>
+                    </div>
+                `;
             }
 
-            this.saveChats();
-            this.renderChatHistory();
+            this.chatMessages.appendChild(container);
+            this.scrollToBottom();
+        }
+
+        // ========== Удаление чата ==========
+        async deleteChat(chatId) {
+            if (!confirm('Вы уверены, что хотите удалить этот чат?')) return;
+
+            try {
+                // Здесь можно добавить вызов API для удаления чата
+                // await this.fetchWithErrorHandling(`/api/chat/${chatId}`, { method: 'DELETE' });
+
+                this.chats = this.chats.filter(c => c.id !== chatId);
+                this.renderChatHistory();
+
+                if (this.currentChatId === chatId) {
+                    if (this.chats.length > 0) {
+                        await this.openChat(this.chats[0].id);
+                    } else {
+                        await this.createNewChat();
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to delete chat:', error);
+                this.showError('Не удалось удалить чат');
+            }
         }
 
         // ========== Скачивание чата ==========
-        downloadChatAsTxt() {
+        async downloadChatAsTxt() {
             if (!this.currentChatId) return;
 
-            const chat = this.chats.find(c => c.id === this.currentChatId);
-            if (!chat || chat.messages.length === 0) {
-                alert('Нет сообщений для скачивания');
-                return;
+            try {
+                const messages = await this.fetchWithErrorHandling(`/api/chat/${this.currentChatId}/messages`);
+                const chat = this.chats.find(c => c.id === this.currentChatId);
+
+                if (!messages || messages.length === 0) {
+                    this.showError('Нет сообщений для скачивания');
+                    return;
+                }
+
+                let txtContent = `DeepSeek Chat - ${chat?.title || 'Чат'}\n\n`;
+                txtContent += `Создан: ${new Date().toLocaleString('ru-RU')}\n\n`;
+                txtContent += "История сообщений:\n\n";
+
+                messages.forEach(message => {
+                    const timestamp = new Date().toLocaleString('ru-RU');
+                    txtContent += `${timestamp} - Вы:\n${message.question}\n\n`;
+                    txtContent += `${timestamp} - DeepSeek:\n${message.answer}\n\n`;
+                });
+
+                const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `DeepSeek_Чат_${(chat?.title || 'chat').replace(/[^a-zа-яё0-9]/gi, '_')}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            } catch (error) {
+                console.error('Failed to download chat:', error);
+                this.showError('Не удалось скачать чат');
             }
-
-            let txtContent = `DeepSeek Chat - ${chat.title}\n\n`;
-            txtContent += `Создан: ${new Date(chat.createdAt).toLocaleString('ru-RU')}\n\n`;
-            txtContent += "История сообщений:\n\n";
-
-            chat.messages.forEach(message => {
-                const timestamp = new Date().toLocaleString('ru-RU');
-                const sender = message.sender === 'user' ? 'Вы' : 'DeepSeek';
-                txtContent += `${timestamp} - ${sender}:\n${message.text}\n\n`;
-            });
-
-            const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `DeepSeek_Чат_${chat.title.replace(/[^a-zа-яё0-9]/gi, '_')}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 100);
         }
 
         // ========== Вспомогательные методы ==========
+        showError(message) {
+            const errorElement = document.createElement('div');
+            errorElement.className = 'error-message';
+            errorElement.textContent = message;
+            document.body.appendChild(errorElement);
+
+            setTimeout(() => {
+                errorElement.remove();
+            }, 3000);
+        }
+
         hideWelcomeMessage() {
             if (this.welcomeMessage) {
                 this.welcomeMessage.style.display = 'none';
@@ -292,11 +359,8 @@ document.addEventListener('DOMContentLoaded', function() {
             this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
         }
 
-        saveChats() {
-            localStorage.setItem('chats', JSON.stringify(this.chats));
-        }
-
         escapeHtml(text) {
+            if (!text) return '';
             return text
                 .replace(/&/g, "&amp;")
                 .replace(/</g, "&lt;")

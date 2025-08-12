@@ -1,44 +1,43 @@
 package com.AA.deepseek.services;
 
 import com.AA.deepseek.entities.Chat;
-import com.AA.deepseek.entities.ChatResponse;
 import com.AA.deepseek.entities.User;
 import com.AA.deepseek.repositories.ChatRepository;
-import com.AA.deepseek.repositories.ChatResponseRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Transactional
 public class ChatService {
     private final ChatRepository chatRepository;
-    private final ChatResponseRepository chatResponseRepository;
+    private final UserService userService;
 
-    public ChatService(ChatRepository chatRepository, ChatResponseRepository chatResponseRepository) {
+    public ChatService(ChatRepository chatRepository, UserService userService) {
         this.chatRepository = chatRepository;
-        this.chatResponseRepository = chatResponseRepository;
+        this.userService = userService;
     }
 
-    public Chat createChat(Long userId, String title) {
+    public Chat createNewChat(String deviceId, String title) {
+        User user = userService.getOrCreateUserByDeviceId(deviceId);
+
         Chat chat = new Chat();
-        chat.setUser(new User(userId));  // Достаточно только ID
         chat.setTitle(title);
+        chat.setUser(user);
+
         return chatRepository.save(chat);
     }
 
-    public ChatResponse addMessage(Long chatId, String question, String answer) {
-        ChatResponse response = new ChatResponse();
-        response.setQuestion(question);
-        response.setAnswer(answer);
-        response.setChat(new Chat(chatId));  // Только ID чата
-        return chatResponseRepository.save(response);
+    public List<Chat> getUserChats(String deviceId) {
+        Optional<User> user = userService.getUserWithChats(deviceId);
+        return user.map(User::getChats)
+                .orElse(Collections.emptyList());
     }
 
-    public List<Chat> getChats(Long userId) {
-        return chatRepository.findByUserId(userId);
-    }
-
-    public List<ChatResponse> getChatHistory(Long chatId) {
-        return chatResponseRepository.findByChatId(chatId);
+    public Optional<Chat> getChatWithMessages(Long chatId) {
+        return chatRepository.findByIdWithMessages(chatId);
     }
 }

@@ -11,8 +11,8 @@ import lombok.ToString;
 @Entity
 @NoArgsConstructor
 @ToString
-@Table(name = "chat_responses")
-public class ChatResponse {
+@Table(name = "messages")
+public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

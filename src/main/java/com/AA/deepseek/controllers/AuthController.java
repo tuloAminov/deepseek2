@@ -7,11 +7,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/register")
 public class AuthController {
-
     private final UserService userService;
 
     public AuthController(UserService userService) {
@@ -27,8 +27,9 @@ public class AuthController {
     @PostMapping()
     public String processRegistration(DeviceIdForm form, Model model) {
         if (form.getDeviceId() != null && !form.getDeviceId().isEmpty()) {
-            userService.registerUser(form.getDeviceId());
+            userService.getOrCreateUserByDeviceId(form.getDeviceId());
+            return "redirect:/api/deepseek/ask?deviceId=" + form.getDeviceId();
         }
-        return "redirect:/api/deepseek/ask";
+        return "redirect:/register";
     }
 }

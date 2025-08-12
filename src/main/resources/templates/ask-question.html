@@ -12,6 +12,9 @@
 
 <body class="app-container">
 
+<!-- Добавим скрытое поле для deviceId -->
+<input type="hidden" id="deviceId" th:value="${deviceId}">
+
 <!-- Кнопка открытия боковой панели для мобильных устройств -->
 <div class="mobile-sidebar-toggle">
     <button id="sidebarToggle" class="sidebar-toggle-button">

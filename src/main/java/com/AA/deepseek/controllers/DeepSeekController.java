@@ -1,34 +1,48 @@
 package com.AA.deepseek.controllers;
 
-import com.AA.deepseek.entities.ChatResponse;
+import com.AA.deepseek.entities.Message;
 import com.AA.deepseek.dto.Question;
+import com.AA.deepseek.entities.User;
+import com.AA.deepseek.services.ChatService;
 import com.AA.deepseek.services.DeepSeekService;
+import com.AA.deepseek.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/api/deepseek")
 public class DeepSeekController {
     private final DeepSeekService deepSeekService;
-    private final List<ChatResponse> chatHistory = new ArrayList<>();
+    private final ChatService chatService;
+    private final UserService userService;
+    private final List<Message> chatHistory = new ArrayList<>();
 
     @Autowired
-    public DeepSeekController(DeepSeekService deepSeekService) {
+    public DeepSeekController(DeepSeekService deepSeekService, ChatService chatService, UserService userService) {
         this.deepSeekService = deepSeekService;
+        this.chatService = chatService;
+        this.userService = userService;
     }
 
     @GetMapping("/ask")
-    public String showAskForm(Model model) {
-        model.addAttribute("question", new Question());
-        model.addAttribute("chatHistory", chatHistory);
+    public String showAskForm(@RequestParam(required = false) String deviceId, Model model) {
+        if (deviceId == null || deviceId.isEmpty()) {
+            return "redirect:/register";
+        }
+
+        // Проверяем, существует ли пользователь с таким deviceId
+        Optional<User> user = userService.getUserWithChats(deviceId);
+        if (user.isEmpty()) {
+            return "redirect:/register";
+        }
+
+        model.addAttribute("deviceId", deviceId);
         return "ask-question";
     }
 
